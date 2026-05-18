@@ -8,39 +8,60 @@ from app.retrieval.retriever import Retriever
 
 from app.generation.answer_generator import AnswerGenerator
 
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class DocumentService:
 
     @staticmethod
     def process(file_path: str, query: str):
 
+        if not query or not query.strip():
+            return {
+                "status": "error",
+                "message": "empty query"
+            }
+
         try:
 
-            # Load
             file = DocumentLoader.load(file_path)
 
-            # Extract
             text = DocumentExtractor.extract_text(file)
 
-            # Chunk
+            if not text.strip():
+                return {
+                    "status": "error",
+                    "message": "empty document"
+                }
+
             chunks = DocumentChunker.chunk(text)
 
-            # Embed
             embeddings = embed_texts(chunks)
 
-            # Store
             store = VectorStore()
             store.build(embeddings, chunks)
 
-            # Retrieve
             retriever = Retriever(store)
+
             retrieved = retriever.retrieve(query)
 
-            # Generate Answer
-            answer = AnswerGenerator.generate(
-                query,
-                retrieved
-            )
+            if not retrieved:
+                return {
+                    "status": "success",
+                    "query": query,
+                    "answer": "No relevant information found in document",
+                    "retrieved_chunks": []
+                }
+
+            answer = AnswerGenerator.generate(query, retrieved)
+
+            if answer.startswith("error:"):
+                return {
+                    "status": "error",
+                    "message": answer
+                }
 
             return {
                 "status": "success",
@@ -50,6 +71,8 @@ class DocumentService:
             }
 
         except Exception as e:
+
+            logger.error(f"Processing failed: {e}")
 
             return {
                 "status": "error",
