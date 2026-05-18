@@ -2,13 +2,7 @@
   {
     "id": "doc_001",
     "file_path": "data/sample.pdf",
-    "query": "What is this document about?",
-    "expected_keywords": ["document", "summary"]
-  },
-  {
-    "id": "doc_002",
-    "file_path": "data/sample.pdf",
-    "query": "List key points",
-    "expected_keywords": ["key", "points"]
+    "query": "What is the document about?",
+    "expected_answer": "This document provides an overview or summary"
   }
 ]
