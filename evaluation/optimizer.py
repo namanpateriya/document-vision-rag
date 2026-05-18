@@ -1,79 +1,39 @@
-import json
-
-from evaluation.evaluator import run
-
-
-class RAGOptimizer:
-
-    def __init__(self):
-
-        self.recommendations = []
-
-    def analyze(self, results):
-
-        failures = []
-
-        for case in results:
-
-            if not case["passed"]:
-
-                failures.append(case)
-
-                self.generate_recommendation(case)
-
-        return failures
-
-    def generate_recommendation(self, case):
-
-        rec = {
-            "id": case["id"],
-            "recommendations": []
-        }
-
-        rec["recommendations"].append(
-            "Improve retrieval relevance (chunking or embeddings)"
-        )
-
-        rec["recommendations"].append(
-            "Improve prompt grounding for better answers"
-        )
-
-        self.recommendations.append(rec)
-
-    def save(self):
-
-        with open(
-            "evaluation/optimization_report.json",
-            "w"
-        ) as f:
-
-            json.dump(
-                self.recommendations,
-                f,
-                indent=2
-            )
+from evaluation.evaluator import evaluate
 
 
 def optimize():
 
-    results = run() or []
+    results = evaluate()
 
-    optimizer = RAGOptimizer()
+    issues = {
+        "low_similarity": 0,
+        "hallucination": 0
+    }
 
-    failures = optimizer.analyze(results)
+    for r in results:
 
-    optimizer.save()
+        if r["similarity"] < 0.5:
+            issues["low_similarity"] += 1
 
-    print("\n=== Optimization Summary ===")
+        if r["hallucination"]:
+            issues["hallucination"] += 1
 
-    print(f"Failures: {len(failures)}")
+    print("\n=== OPTIMIZATION REPORT ===")
 
-    for rec in optimizer.recommendations:
+    print(f"Low Similarity Cases: {issues['low_similarity']}")
+    print(f"Hallucinations: {issues['hallucination']}")
 
-        print(f"\nTest: {rec['id']}")
+    if issues["hallucination"] > 0:
+        print("\nRecommendation:")
+        print("- Strengthen prompt grounding")
+        print("- Reduce chunk size")
+        print("- Improve retrieval relevance")
 
-        for r in rec["recommendations"]:
-            print(f"- {r}")
+    if issues["low_similarity"] > 0:
+        print("\nRecommendation:")
+        print("- Improve embeddings")
+        print("- Tune chunking strategy")
+        print("- Increase top_k retrieval")
 
 
 if __name__ == "__main__":
