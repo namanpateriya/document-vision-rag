@@ -1,3 +1,5 @@
+import re
+
 from app.config import CHUNK_SIZE
 
 
@@ -6,18 +8,20 @@ class DocumentChunker:
     @staticmethod
     def chunk(text: str):
 
+        sentences = re.split(r'(?<=[.!?]) +', text)
+
         chunks = []
+        current = ""
 
-        start = 0
+        for sentence in sentences:
 
-        while start < len(text):
+            if len(current) + len(sentence) < CHUNK_SIZE:
+                current += " " + sentence
+            else:
+                chunks.append(current.strip())
+                current = sentence
 
-            end = start + CHUNK_SIZE
-
-            chunk = text[start:end]
-
-            chunks.append(chunk)
-
-            start = end
+        if current:
+            chunks.append(current.strip())
 
         return chunks
