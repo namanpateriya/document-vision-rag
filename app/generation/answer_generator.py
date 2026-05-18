@@ -8,6 +8,9 @@ class AnswerGenerator:
     @staticmethod
     def generate(query: str, chunks: list):
 
+        if not chunks:
+            return "No relevant information found in document"
+
         context = "\n\n".join(chunks)
 
         prompt = f"""
@@ -15,9 +18,9 @@ You are an AI assistant for document analysis.
 
 STRICT RULES:
 - Use ONLY the provided context
-- Do NOT hallucinate
-- If answer not present, say "Not found in document"
-- Be concise and precise
+- DO NOT hallucinate
+- If answer is not present, say "Not found in document"
+- Be precise and concise
 
 Context:
 {context}
@@ -28,6 +31,4 @@ Question:
 Answer:
 """
 
-        response = client.generate(prompt)
-
-        return response
+        return client.generate(prompt)
