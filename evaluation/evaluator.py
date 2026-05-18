@@ -1,16 +1,28 @@
 import json
+from sentence_transformers import SentenceTransformer
+import numpy as np
 
 from app.service import DocumentService
 
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-def run():
+
+def semantic_similarity(a, b):
+
+    emb = model.encode([a, b])
+
+    return float(
+        np.dot(emb[0], emb[1]) /
+        (np.linalg.norm(emb[0]) * np.linalg.norm(emb[1]))
+    )
+
+
+def evaluate():
 
     with open("evaluation/test_cases.json") as f:
         cases = json.load(f)
 
     results = []
-
-    print("\n=== Evaluation ===\n")
 
     for case in cases:
 
@@ -19,25 +31,25 @@ def run():
             case["query"]
         )
 
-        answer = result.get("answer", "").lower()
+        answer = result.get("answer", "")
 
-        passed = any(
-            k.lower() in answer
-            for k in case["expected_keywords"]
-        )
+        expected = case.get("expected_answer", "")
 
-        case_result = {
+        similarity = semantic_similarity(answer, expected)
+
+        hallucination = "not found in document" not in answer.lower() and similarity < 0.4
+
+        results.append({
             "id": case["id"],
-            "passed": passed,
-            "answer": answer
-        }
+            "similarity": round(similarity, 3),
+            "hallucination": hallucination,
+            "passed": similarity > 0.5
+        })
 
-        results.append(case_result)
-
-        print(case["id"], "PASS" if passed else "FAIL")
+        print(case["id"], results[-1])
 
     return results
 
 
 if __name__ == "__main__":
-    run()
+    evaluate()
