@@ -6,34 +6,52 @@ from app.retrieval.embeddings import embed_texts
 from app.retrieval.vector_store import VectorStore
 from app.retrieval.retriever import Retriever
 
+from app.generation.answer_generator import AnswerGenerator
+
 
 class DocumentService:
 
     @staticmethod
     def process(file_path: str, query: str):
 
-        # Step 1: Load
-        file = DocumentLoader.load(file_path)
+        try:
 
-        # Step 2: Extract
-        text = DocumentExtractor.extract_text(file)
+            # Load
+            file = DocumentLoader.load(file_path)
 
-        # Step 3: Chunk
-        chunks = DocumentChunker.chunk(text)
+            # Extract
+            text = DocumentExtractor.extract_text(file)
 
-        # Step 4: Embed
-        embeddings = embed_texts(chunks)
+            # Chunk
+            chunks = DocumentChunker.chunk(text)
 
-        # Step 5: Store
-        store = VectorStore()
-        store.build(embeddings, chunks)
+            # Embed
+            embeddings = embed_texts(chunks)
 
-        # Step 6: Retrieve
-        retriever = Retriever(store)
-        results = retriever.retrieve(query)
+            # Store
+            store = VectorStore()
+            store.build(embeddings, chunks)
 
-        return {
-            "status": "success",
-            "query": query,
-            "retrieved_chunks": results
-        }
+            # Retrieve
+            retriever = Retriever(store)
+            retrieved = retriever.retrieve(query)
+
+            # Generate Answer
+            answer = AnswerGenerator.generate(
+                query,
+                retrieved
+            )
+
+            return {
+                "status": "success",
+                "query": query,
+                "answer": answer,
+                "retrieved_chunks": retrieved
+            }
+
+        except Exception as e:
+
+            return {
+                "status": "error",
+                "message": str(e)
+            }
