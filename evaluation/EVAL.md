@@ -1,6 +1,6 @@
 # Evaluation
 
-This repository includes an evaluation framework for validating document-based RAG workflows.
+The evaluation framework validates the performance of the document RAG system.
 
 ---
 
@@ -8,9 +8,9 @@ This repository includes an evaluation framework for validating document-based R
 
 The system evaluates:
 
-- retrieval relevance
-- answer grounding
-- response correctness (basic)
+- semantic similarity between expected and generated answers
+- hallucination detection
+- retrieval effectiveness
 - end-to-end pipeline behavior
 
 ---
@@ -24,12 +24,22 @@ Document Processing
     ↓
 Chunking + Retrieval
     ↓
-Gemini Answer Generation
+Answer Generation (Gemini)
     ↓
-Keyword Matching
+Semantic Comparison
     ↓
 Pass / Fail
 ```
+
+---
+
+# Metrics
+
+The framework measures:
+
+- semantic similarity score
+- hallucination detection
+- answer relevance
 
 ---
 
@@ -49,31 +59,50 @@ python -m evaluation.optimizer
 
 ---
 
-# Metrics
+# Optimization Goals
 
-Currently measured:
+The optimizer identifies:
 
-- keyword presence
-- answer relevance (basic)
-- pipeline success
+- low similarity responses
+- hallucinated answers
+- weak retrieval quality
+
+It provides recommendations for:
+
+- improving prompts
+- tuning chunk size
+- improving embeddings
+- adjusting retrieval strategy
+
+---
+
+# Example Test Case
+
+```json
+{
+  "file_path": "data/sample.pdf",
+  "query": "What is the document about?",
+  "expected_answer": "This document provides an overview"
+}
+```
 
 ---
 
 # Limitations
 
-- keyword-based validation
-- no semantic scoring
-- no hallucination detection
+- depends on embedding model quality
+- does not use LLM-as-judge (yet)
+- limited to single-query evaluation
 
 ---
 
 # Future Improvements
 
-- semantic similarity scoring
-- LLM-as-a-judge evaluation
-- retrieval quality scoring
-- latency tracking
+- LLM-based evaluation
+- retrieval scoring metrics
+- latency benchmarking
 - multi-query evaluation
+- ranking metrics (MRR, Recall@K)
 
 ---
 
@@ -81,10 +110,10 @@ Currently measured:
 
 The goal is to ensure:
 
-- reliable document understanding
 - grounded answers
-- consistent RAG behavior
+- reliable retrieval
+- measurable AI system performance
 
 ---
 
-Built for evaluating lightweight document AI systems.
+Built for evaluating document-based AI systems.
