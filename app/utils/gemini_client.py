@@ -1,10 +1,9 @@
 import time
+import os
+
 import google.generativeai as genai
 
 from app.utils.logger import get_logger
-from app.config import DATA_PATH
-
-import os
 
 logger = get_logger(__name__)
 
@@ -36,16 +35,19 @@ class GeminiClient:
         if self.model is None:
             return "error: model not initialized"
 
+        if len(prompt) > 20000:
+            prompt = prompt[:20000]
+
         for attempt in range(MAX_RETRIES):
 
             try:
                 response = self.model.generate_content(prompt)
 
-                if response.text:
+                if hasattr(response, "text") and response.text:
                     return response.text.strip()
 
             except Exception as e:
                 logger.error(f"Attempt {attempt+1} failed: {e}")
                 time.sleep(1)
 
-        return "error: failed to generate response"
+        return "error: generation failed"
